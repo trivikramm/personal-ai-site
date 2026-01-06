@@ -2,15 +2,15 @@ const fs = require('fs');
 const path = require('path');
 
 const templatePath = path.join(__dirname, '..', 'personalAI.template.html');
-const outPath = path.join(__dirname, '..', 'personalAI.html');
+const outPath = path.join(__dirname, '..', 'index.html');
 const agentId = process.env.ELEVENLABS_AGENT_ID;
 
 if (!agentId) {
-  console.error('ELEVENLABS_AGENT_ID not set');
-  process.exit(1);
+  console.error('ERROR: ELEVENLABS_AGENT_ID environment variable is not set.');
+  console.log('Using a placeholder ID for demonstration.');
 }
 
 const tpl = fs.readFileSync(templatePath, 'utf8');
-const out = tpl.replace(/{{ELEVENLABS_AGENT_ID}}/g, agentId);
+const out = tpl.replace(/{{ELEVENLABS_AGENT_ID}}/g, agentId || 'your-agent-id-here');
 fs.writeFileSync(outPath, out, 'utf8');
-console.log('personalAI.html generated');
+console.log('index.html generated successfully.');
