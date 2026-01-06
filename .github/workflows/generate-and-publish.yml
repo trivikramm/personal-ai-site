@@ -1,0 +1,29 @@
+name: Generate and Publish Pages
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Generate personalAI.html from template
+        env:
+          ELEVENLABS_AGENT_ID: ${{ secrets.ELEVENLABS_AGENT_ID }}
+        run: |
+          node scripts/generate-personalAI.js
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          publish_dir: personal-ai-site
+          publish_branch: gh-pages
+          github_token: ${{ secrets.GITHUB_TOKEN }}
