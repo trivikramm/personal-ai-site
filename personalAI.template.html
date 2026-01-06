@@ -15,31 +15,19 @@
             width: 100%;
             height: 100vh;
             overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
-        /* Mobile-optimized CSS for ElevenLabs widget */
-        #elevenlabs-widget {
+        elevenlabs-convai {
+            display: block;
             width: 100%;
             height: 100%;
-            border: none;
-            display: block;
-        }
-
-        /* Ensure full viewport coverage on mobile */
-        @media (max-width: 768px) {
-            #elevenlabs-widget {
-                width: 100%;
-                height: 100%;
-            }
         }
     </style>
 </head>
 <body>
-    <!-- ElevenLabs Widget -->
-    <iframe
-        id="elevenlabs-widget"
-        src="https://elevenlabs.io/app/conversational-ai?token=YOUR_TOKEN_HERE"
-        allow="microphone"
-    ></iframe>
+    <!-- ElevenLabs Conversational AI Widget -->
+    <elevenlabs-convai agent-id="{{ELEVENLABS_AGENT_ID}}"></elevenlabs-convai>
+    <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
 </body>
 </html>
