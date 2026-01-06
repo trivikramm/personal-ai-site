@@ -2,76 +2,30 @@ name: Generate and Publish Pages
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
+
+permissions:
+  contents: write
 
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      - name: Generate personalAI.html from template
+      - name: Generate HTML from template
         env:
           ELEVENLABS_AGENT_ID: ${{ secrets.ELEVENLABS_AGENT_ID }}
-        run: |
-          echo "Repository root contents:"
-          ls -la
-          echo "Looking for generator script..."
-          if [ -f personal-ai-site/scripts/generate-personalAI.js ]; then
-            echo "Found at personal-ai-site/scripts/generate-personalAI.js — running"
-            node personal-ai-site/scripts/generate-personalAI.js
-          elif [ -f scripts/generate-personalAI.js ]; then
-            echo "Found at scripts/generate-personalAI.js — running"
-            node scripts/generate-personalAI.js
-          else
-            echo "ERROR: generate-personalAI.js not found in expected locations"
-            echo "Searched: personal-ai-site/scripts/generate-personalAI.js and scripts/generate-personalAI.js"
-            exit 1
-          fi
+        run: bash scripts/generate-html.sh
 
-      - name: Deploy site to gh-pages branch (no actions)
+      - name: Deploy to GitHub Pages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "Preparing deployment directory"
-          rm -rf out || true
-          mkdir out
-
-          echo "Checking for personal-ai-site folder"
-          if [ -d personal-ai-site ] && [ "$(ls -A personal-ai-site)" ]; then
-            echo "Using personal-ai-site contents"
-            ls -la personal-ai-site
-            cp -a personal-ai-site/. out/
-          else
-            echo "personal-ai-site folder not found or empty, checking for root files"
-            ls -la
-            # Copy any html/js/css files from repo root into out
-            cp -a *.html *.htm public/ out/ 2>/dev/null || true
-          fi
-
-          echo "Out directory contents:"
-          ls -la out || true
-
-          if [ -z "$(ls -A out 2>/dev/null)" ]; then
-            echo "ERROR: no files to publish in out/ — aborting"
-            exit 1
-          fi
-
-          echo "Initializing temporary git repo"
-          cd out
-          git init
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -b gh-pages || git branch -M gh-pages
-          git add .
-          git commit -m "Deploy site: $GITHUB_SHA" || { echo "nothing to commit"; }
-
-          echo "Pushing to gh-pages branch"
-          git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" gh-pages:gh-pages
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: bash scripts/deploy-pages.sh
