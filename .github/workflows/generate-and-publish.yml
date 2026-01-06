@@ -41,16 +41,35 @@ jobs:
           echo "Preparing deployment directory"
           rm -rf out || true
           mkdir out
-          cp -r personal-ai-site/* out/ || true
-          ls -la out
+
+          echo "Checking for personal-ai-site folder"
+          if [ -d personal-ai-site ] && [ "$(ls -A personal-ai-site)" ]; then
+            echo "Using personal-ai-site contents"
+            ls -la personal-ai-site
+            cp -a personal-ai-site/. out/
+          else
+            echo "personal-ai-site folder not found or empty, checking for root files"
+            ls -la
+            # Copy any html/js/css files from repo root into out
+            cp -a *.html *.htm public/ out/ 2>/dev/null || true
+          fi
+
+          echo "Out directory contents:"
+          ls -la out || true
+
+          if [ -z "$(ls -A out 2>/dev/null)" ]; then
+            echo "ERROR: no files to publish in out/ — aborting"
+            exit 1
+          fi
 
           echo "Initializing temporary git repo"
           cd out
           git init
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b gh-pages || git branch -M gh-pages
           git add .
-          git commit -m "Deploy site: $GITHUB_SHA" || echo "nothing to commit"
+          git commit -m "Deploy site: $GITHUB_SHA" || { echo "nothing to commit"; }
 
           echo "Pushing to gh-pages branch"
-          git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" master:gh-pages || git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" HEAD:gh-pages
+          git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" gh-pages:gh-pages
