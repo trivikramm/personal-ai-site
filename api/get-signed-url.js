@@ -6,9 +6,18 @@
 export default async function (req, res) {
   const agentId = process.env.ELEVENLABS_AGENT_ID;
   const apiKey = process.env.ELEVENLABS_API_KEY;
+  const siteAccessCode = process.env.SITE_ACCESS_CODE;
+
+  // Handle both GET and POST for password check
+  const providedPassword = req.method === 'POST' ? req.body?.password : req.query?.password;
 
   if (!agentId || !apiKey) {
-    return res.status(500).json({ error: 'Missing environment variables' });
+    return res.status(500).json({ error: 'Missing environment variables on server' });
+  }
+
+  // 1. SECURE PASSWORD CHECK (Server-side only)
+  if (siteAccessCode && providedPassword !== siteAccessCode) {
+    return res.status(401).json({ error: 'Unauthorized: Incorrect access code' });
   }
 
   try {

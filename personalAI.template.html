@@ -71,8 +71,6 @@
         <elevenlabs-convai id="elevenlabs-widget" agent-id="{{ELEVENLABS_AGENT_ID}}"></elevenlabs-convai>
     </div>
     <script>
-        const ACCESS_CODE = "{{SITE_ACCESS_CODE}}";
-
         function handleKey(e) {
             if (e.key === 'Enter') {
                 checkPassword();
@@ -81,38 +79,37 @@
 
         async function checkPassword() {
             const input = document.getElementById('password-input').value;
-            
-            // Placeholder detection to check if the secret was actually injected
-            const isPlaceholder = (ACCESS_CODE === "" || ACCESS_CODE === "{{" + "SITE_ACCESS_CODE" + "}}");
-            
-            if (isPlaceholder) {
-                alert("Setup Required: Please set the SITE_ACCESS_CODE secret in your GitHub Repository settings and wait for the site to rebuild.");
-                return;
-            }
-
-            if (input === ACCESS_CODE) {
-                document.getElementById('gate').style.display = 'none';
-                document.getElementById('widget-wrapper').style.display = 'flex';
-                initAuth(); 
-            } else {
-                alert("Incorrect code. Please try again.");
-            }
-        }
-
-        async function initAuth() {
+            const gate = document.getElementById('gate');
+            const widgetWrapper = document.getElementById('widget-wrapper');
             const widget = document.getElementById('elevenlabs-widget');
+
             try {
-                // Try to get signed URL (works if deployed to Vercel/Netlify)
-                const response = await fetch('/api/get-signed-url'); 
+                // 1. Send password to backend to get a signed URL
+                // The secret is NEVER stored in the browser anymore.
+                const response = await fetch('/api/get-signed-url', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: input })
+                });
+
                 if (response.ok) {
                     const data = await response.json();
                     if (data.signed_url) {
+                        // 2. Apply the signed URL to the widget
                         widget.setAttribute('signed-url', data.signed_url);
-                        console.log('ElevenLabs: Signed URL applied.');
+                        
+                        // 3. Show the widget
+                        gate.style.display = 'none';
+                        widgetWrapper.style.display = 'flex';
+                        console.log('ElevenLabs: Authenticated successfully.');
                     }
+                } else {
+                    const errorData = await response.json();
+                    alert(errorData.error || "Incorrect access code.");
                 }
             } catch (err) {
-                console.log('ElevenLabs: Running in Allowlist mode (no signed URL).');
+                console.error('Connection error:', err);
+                alert("Server connection failed. (Make sure you are not on GitHub Pages)");
             }
         }
     </script>
