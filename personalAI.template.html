@@ -17,11 +17,16 @@
             padding: 0;
             overflow: hidden;
             background-color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
         .widget-container {
             width: 100vw;
             height: 100vh;
-            display: flex;
+            display: none; /* Hidden until password entered */
             align-items: center;
             justify-content: center;
         }
@@ -29,12 +34,67 @@
             width: 100% !important;
             height: 100% !important;
         }
+        #gate {
+            text-align: center;
+            z-index: 1000;
+        }
+        input {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background: #222;
+            color: white;
+            margin-top: 10px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-    <div class="widget-container">
-        <elevenlabs-convai agent-id="{{ELEVENLABS_AGENT_ID}}"></elevenlabs-convai>
+    <div id="gate">
+        <h2>Enter Access Code</h2>
+        <input type="password" id="password-input" placeholder="Password..." onkeypress="handleKey(event)">
     </div>
+
+    <div class="widget-container" id="widget-wrapper">
+        <elevenlabs-convai id="elevenlabs-widget" agent-id="{{ELEVENLABS_AGENT_ID}}"></elevenlabs-convai>
+    </div>
+    <script>
+        const ACCESS_CODE = "{{SITE_ACCESS_CODE}}";
+
+        function handleKey(e) {
+            if (e.key === 'Enter') {
+                checkPassword();
+            }
+        }
+
+        async function checkPassword() {
+            const input = document.getElementById('password-input').value;
+            if (input === ACCESS_CODE || ACCESS_CODE === "" || ACCESS_CODE === "{{SITE_ACCESS_CODE}}") {
+                document.getElementById('gate').style.display = 'none';
+                document.getElementById('widget-wrapper').style.display = 'flex';
+                initAuth(); // Call the auth/init logic
+            } else {
+                alert("Incorrect code.");
+            }
+        }
+
+        async function initAuth() {
+            const widget = document.getElementById('elevenlabs-widget');
+            try {
+                // Try to get signed URL (works if deployed to Vercel/Netlify)
+                const response = await fetch('/api/get-signed-url'); 
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.signed_url) {
+                        widget.setAttribute('signed-url', data.signed_url);
+                        console.log('ElevenLabs: Signed URL applied.');
+                    }
+                }
+            } catch (err) {
+                console.log('ElevenLabs: Running in Allowlist mode (no signed URL).');
+            }
+        }
+    </script>
     <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
 </body>
 </html>

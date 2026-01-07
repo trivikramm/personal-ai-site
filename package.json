@@ -1,0 +1,12 @@
+{
+  "name": "personal-ai-site",
+  "version": "1.0.0",
+  "description": "Personal AI Assistant site with ElevenLabs ConvAI",
+  "scripts": {
+    "build": "bash scripts/generate-html.sh"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}
