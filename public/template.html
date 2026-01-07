@@ -68,7 +68,8 @@
     </div>
 
     <div class="widget-container" id="widget-wrapper">
-        <elevenlabs-convai id="elevenlabs-widget" agent-id="{{ELEVENLABS_AGENT_ID}}"></elevenlabs-convai>
+        <!-- Hidden Agent ID: Removed agent-id attribute from here -->
+        <elevenlabs-convai id="elevenlabs-widget"></elevenlabs-convai>
     </div>
     <script>
         function handleKey(e) {
@@ -95,12 +96,15 @@
                 if (response.ok) {
                     const data = await response.json();
                     
-                    // Apply signed URL if the secret API key was provided
+                    // CRITICAL SECURITY: Apply either signed-url OR agent-id dynamically
+                    // This keeps the ID out of the HTML source code.
                     if (data.signed_url) {
                         widget.setAttribute('signed-url', data.signed_url);
+                    } else if (data.agent_id) {
+                        widget.setAttribute('agent-id', data.agent_id);
                     }
                     
-                    // Show the widget (works for both Signed URL and Allowlist modes)
+                    // Show the widget
                     gate.style.display = 'none';
                     widgetWrapper.style.display = 'flex';
                     console.log('ElevenLabs: Authenticated successfully.');
