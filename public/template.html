@@ -87,11 +87,6 @@
                     widget.setAttribute('signed-url', data.signed_url);
                     widgetWrapper.appendChild(widget);
                     
-                    // Cleanup security: Remove signed URL from DOM after 3 seconds
-                    setTimeout(() => {
-                        widget.removeAttribute('signed-url');
-                    }, 3000);
-                    
                     // Show the agent
                     gate.style.display = 'none';
                     widgetWrapper.style.display = 'flex';
