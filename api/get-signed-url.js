@@ -29,10 +29,10 @@ export default async function (req, res) {
 
   // 2. OPTIONAL: SIGNED URL (Requires API Key)
   if (!apiKey) {
-    console.log('No API Key found. Falling back to Allowlist mode.');
+    console.log('No API Key found. Returning Agent ID for Allowlist mode.');
     return res.status(200).json({ 
-      success: true, 
-      message: 'Password correct. Using Allowlist mode (no signed URL).' 
+      agent_id: agentId,
+      message: 'Password correct. Using Allowlist mode.' 
     });
   }
 

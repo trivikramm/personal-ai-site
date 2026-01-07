@@ -68,8 +68,7 @@
     </div>
 
     <div class="widget-container" id="widget-wrapper">
-        <!-- Hidden Agent ID: Removed agent-id attribute from here -->
-        <elevenlabs-convai id="elevenlabs-widget"></elevenlabs-convai>
+        <!-- The widget will be dynamically created here after successful authentication -->
     </div>
     <script>
         function handleKey(e) {
@@ -82,11 +81,9 @@
             const input = document.getElementById('password-input').value;
             const gate = document.getElementById('gate');
             const widgetWrapper = document.getElementById('widget-wrapper');
-            const widget = document.getElementById('elevenlabs-widget');
 
             try {
-                // 1. Send password to backend to get a signed URL
-                // The secret is NEVER stored in the browser anymore.
+                // 1. Send password to backend to get the necessary credentials
                 const response = await fetch('/api/get-signed-url', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -96,18 +93,26 @@
                 if (response.ok) {
                     const data = await response.json();
                     
-                    // CRITICAL SECURITY: Apply either signed-url OR agent-id dynamically
-                    // This keeps the ID out of the HTML source code.
+                    // 2. Clear wrapper and create the widget element dynamically
+                    // This ensures it initializes correctly with the provided attributes
+                    widgetWrapper.innerHTML = '';
+                    const widget = document.createElement('elevenlabs-convai');
+                    widget.id = 'elevenlabs-widget';
+                    
                     if (data.signed_url) {
                         widget.setAttribute('signed-url', data.signed_url);
                     } else if (data.agent_id) {
                         widget.setAttribute('agent-id', data.agent_id);
+                    } else {
+                        throw new Error("No agent data received from server");
                     }
                     
-                    // Show the widget
+                    widgetWrapper.appendChild(widget);
+                    
+                    // 3. Show the container
                     gate.style.display = 'none';
                     widgetWrapper.style.display = 'flex';
-                    console.log('ElevenLabs: Authenticated successfully.');
+                    console.log('ElevenLabs: Authenticated and widget initialized.');
                 } else {
                     const errorData = await response.json();
                     alert(errorData.error || "Incorrect access code.");
