@@ -109,7 +109,15 @@
                     
                     widgetWrapper.appendChild(widget);
                     
-                    // 3. Show the container
+                    // 3. PRODUCTION SECURITY: Remove ID from DOM after initialization
+                    // We wait a brief moment for the widget to read the ID, then wipe it.
+                    setTimeout(() => {
+                        widget.removeAttribute('agent-id');
+                        widget.removeAttribute('signed-url');
+                        console.log('ElevenLabs: Security cleanup complete. IDs removed from DOM.');
+                    }, 2000);
+                    
+                    // 4. Show the container
                     gate.style.display = 'none';
                     widgetWrapper.style.display = 'flex';
                     console.log('ElevenLabs: Authenticated and widget initialized.');
