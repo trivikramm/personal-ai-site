@@ -6,6 +6,22 @@
 export default async function (req, res) {
   const agentId = process.env.ELEVENLABS_AGENT_ID;
   const apiKey = process.env.ELEVENLABS_API_KEY;
+  const siteAccessCode = process.env.SITE_ACCESS_CODE;
+
+  // 1. SECURE PASSWORD CHECK (Server-side)
+  // Get password from request (detects both body or query)
+  let providedPassword = '';
+  if (req.method === 'POST') {
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    providedPassword = body?.password;
+  } else {
+    providedPassword = req.query?.password;
+  }
+
+  // If a password is set in Vercel, it MUST match the one provided by the user
+  if (siteAccessCode && providedPassword !== siteAccessCode) {
+    return res.status(401).json({ error: 'Unauthorized: Incorrect access code' });
+  }
 
   if (!agentId || !apiKey) {
     return res.status(500).json({ error: 'Missing environment variables on Vercel' });
