@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal AI Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            position: fixed; /* Prevent scrolling and rubber-banding */
+        }
+        .widget-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            height: 100dvh; /* Dynamic viewport height for mobile */
+            display: none; /* Hidden until password entered */
+            z-index: 100;
+        }
+        elevenlabs-convai {
+            width: 100% !important;
+            height: 100% !important;
+            margin: 0;
+            padding: 0;
+        }
+        #gate {
+            text-align: center;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 20px;
+        }
+        input {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background: #222;
+            color: white;
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="gate">
+        <h2>Enter Access Code</h2>
+        <input type="password" id="password-input" placeholder="Password..." onkeypress="handleKey(event)">
+    </div>
+
+    <div class="widget-container" id="widget-wrapper">
+        <elevenlabs-convai id="elevenlabs-widget" agent-id="agent_6101ke67hc1dee5rpyhzph81eb54"></elevenlabs-convai>
+    </div>
+    <script>
+        function handleKey(e) {
+            if (e.key === 'Enter') {
+                checkPassword();
+            }
+        }
+
+        async function checkPassword() {
+            const input = document.getElementById('password-input').value;
+            const gate = document.getElementById('gate');
+            const widgetWrapper = document.getElementById('widget-wrapper');
+            const widget = document.getElementById('elevenlabs-widget');
+
+            try {
+                // 1. Send password to backend to get a signed URL
+                // The secret is NEVER stored in the browser anymore.
+                const response = await fetch('/api/get-signed-url', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: input })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.signed_url) {
+                        // 2. Apply the signed URL to the widget
+                        widget.setAttribute('signed-url', data.signed_url);
+                        
+                        // 3. Show the widget
+                        gate.style.display = 'none';
+                        widgetWrapper.style.display = 'flex';
+                        console.log('ElevenLabs: Authenticated successfully.');
+                    }
+                } else {
+                    const errorData = await response.json();
+                    alert(errorData.error || "Incorrect access code.");
+                }
+            } catch (err) {
+                console.error('Connection error:', err);
+                alert("Server connection failed. (Make sure you are not on GitHub Pages)");
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
+</body>
+</html>
