@@ -94,15 +94,16 @@
 
                 if (response.ok) {
                     const data = await response.json();
+                    
+                    // Apply signed URL if the secret API key was provided
                     if (data.signed_url) {
-                        // 2. Apply the signed URL to the widget
                         widget.setAttribute('signed-url', data.signed_url);
-                        
-                        // 3. Show the widget
-                        gate.style.display = 'none';
-                        widgetWrapper.style.display = 'flex';
-                        console.log('ElevenLabs: Authenticated successfully.');
                     }
+                    
+                    // Show the widget (works for both Signed URL and Allowlist modes)
+                    gate.style.display = 'none';
+                    widgetWrapper.style.display = 'flex';
+                    console.log('ElevenLabs: Authenticated successfully.');
                 } else {
                     const errorData = await response.json();
                     alert(errorData.error || "Incorrect access code.");

@@ -11,13 +11,22 @@ export default async function (req, res) {
   // Handle both GET and POST for password check
   const providedPassword = req.method === 'POST' ? req.body?.password : req.query?.password;
 
-  if (!agentId || !apiKey) {
-    return res.status(500).json({ error: 'Missing environment variables on server' });
+  if (!agentId) {
+    return res.status(500).json({ error: 'Missing ELEVENLABS_AGENT_ID on server' });
   }
 
   // 1. SECURE PASSWORD CHECK (Server-side only)
   if (siteAccessCode && providedPassword !== siteAccessCode) {
     return res.status(401).json({ error: 'Unauthorized: Incorrect access code' });
+  }
+
+  // 2. OPTIONAL: SIGNED URL (Requires API Key)
+  if (!apiKey) {
+    console.log('No API Key found. Falling back to Allowlist mode.');
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Password correct. Using Allowlist mode (no signed URL).' 
+    });
   }
 
   try {
