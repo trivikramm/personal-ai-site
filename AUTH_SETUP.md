@@ -1,21 +1,23 @@
-# ElevenLabs Secure Authentication Setup
+# ElevenLabs Production Auth Setup (Signed URLs)
 
-To ensure your password is **never visible** in the browser console or "Inspect Element", this project now uses **Server-side Authentication**.
+This project is now configured for **Full Production Security** using ElevenLabs Authenticated mode. This is the most secure method: your Agent ID, API Key, and WebSocket signatures are all hidden on the server.
 
-## 1. Requirement: Vercel or Netlify
-**GitHub Pages is NOT supported for secure password protection.** 
-GitHub Pages can only host "Static" sites. Since we need to hide the password from the user's browser, we must use a backend. Vercel and Netlify are free and automatically run the backend code in the `api/` folder.
+## 1. Hosting: Vercel Required
+Since we are using Server-Side signing, you must host on **Vercel** (or any provider with Node.js API support). GitHub Pages will not work.
 
-## 2. Environment Variables (Required in Vercel/Netlify)
-You must add these three variables to your **Vercel** or **Netlify** project:
-1. `ELEVENLABS_AGENT_ID`: Your Agent ID.
-2. `ELEVENLABS_API_KEY`: Your ElevenLabs API Key.
-3. `SITE_ACCESS_CODE`: The secret password you want users to type.
+## 2. ElevenLabs Dashboard Settings
+1.  Go to your **ElevenLabs Agent Settings**.
+2.  Switch **"Enable authentication"** to **ON**.
+3.  Click **Publish** to save transitions.
 
-## 3. How the Security Works
-1. User types the password on your site.
-2. The site sends the password to the backend function (`/api/get-signed-url`).
-3. The **Server** (which users cannot see) compares it with your `SITE_ACCESS_CODE`.
-4. If correct, the **Server** fetches the ElevenLabs token.
-5. The password itself **never** exists in the browser's source code.
+## 3. Environment Variables (Vercel)
+Add these two variables to your Vercel Project Settings:
+1.  `ELEVENLABS_AGENT_ID`: Your Agent ID.
+2.  `ELEVENLABS_API_KEY`: Your API Key (required for signing).
+
+## 4. How it works
+- The visitor opens your site.
+- The browser calls `/api/get-signed-url`.
+- Your Vercel server uses your API key to generate a single-use token from ElevenLabs.
+- The agent initializes securely without ever exposing your secrets.
 

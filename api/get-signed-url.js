@@ -6,34 +6,9 @@
 export default async function (req, res) {
   const agentId = process.env.ELEVENLABS_AGENT_ID;
   const apiKey = process.env.ELEVENLABS_API_KEY;
-  const siteAccessCode = process.env.SITE_ACCESS_CODE;
 
-  // Handle both GET and POST for password check
-  let providedPassword = '';
-  if (req.method === 'POST') {
-    // Vercel might not parse the body automatically if not configured
-    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    providedPassword = body?.password;
-  } else {
-    providedPassword = req.query?.password;
-  }
-
-  if (!agentId) {
-    return res.status(500).json({ error: 'Missing ELEVENLABS_AGENT_ID on server' });
-  }
-
-  // 1. SECURE PASSWORD CHECK (Server-side only)
-  if (siteAccessCode && providedPassword !== siteAccessCode) {
-    return res.status(401).json({ error: 'Unauthorized: Incorrect access code' });
-  }
-
-  // 2. OPTIONAL: SIGNED URL (Requires API Key)
-  if (!apiKey) {
-    console.log('No API Key found. Returning Agent ID for Allowlist mode.');
-    return res.status(200).json({ 
-      agent_id: agentId,
-      message: 'Password correct. Using Allowlist mode.' 
-    });
+  if (!agentId || !apiKey) {
+    return res.status(500).json({ error: 'Missing environment variables on Vercel' });
   }
 
   try {
@@ -53,12 +28,9 @@ export default async function (req, res) {
     }
 
     const data = await response.json();
-    // data.signed_url contains the wss://... URL with conversation_signature
     res.status(200).json(data);
   } catch (error) {
-    console.error('Error signing URL or returning ID:', error);
-    // If signing fails but password was correct, we can still return the agentId 
-    // to be injected dynamically instead of statically in HTML
-    res.status(200).json({ agent_id: agentId });
+    console.error('Error signing URL:', error);
+    res.status(500).json({ error: error.message });
   }
 }

@@ -50,86 +50,63 @@
             width: 100%;
             padding: 20px;
         }
-        input {
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #444;
-            background: #222;
-            color: white;
-            margin-top: 10px;
-            text-align: center;
+        .loading-text {
+            font-size: 1.2rem;
+            opacity: 0.8;
         }
     </style>
 </head>
 <body>
     <div id="gate">
-        <h2>Enter Access Code</h2>
-        <input type="password" id="password-input" placeholder="Password..." onkeypress="handleKey(event)">
+        <p class="loading-text">Securing connection to AI Assistant...</p>
     </div>
 
     <div class="widget-container" id="widget-wrapper">
         <!-- The widget will be dynamically created here after successful authentication -->
     </div>
     <script>
-        function handleKey(e) {
-            if (e.key === 'Enter') {
-                checkPassword();
-            }
-        }
-
-        async function checkPassword() {
-            const input = document.getElementById('password-input').value;
+        async function initAgent() {
             const gate = document.getElementById('gate');
             const widgetWrapper = document.getElementById('widget-wrapper');
 
             try {
-                // 1. Send password to backend to get the necessary credentials
-                const response = await fetch('/api/get-signed-url', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password: input })
-                });
+                // Fetch the signed URL from your backend (Vercel)
+                const response = await fetch('/api/get-signed-url');
 
                 if (response.ok) {
                     const data = await response.json();
                     
-                    // 2. Clear wrapper and create the widget element dynamically
-                    // This ensures it initializes correctly with the provided attributes
+                    if (!data.signed_url) {
+                        throw new Error("No signed URL received. Ensure ELEVENLABS_API_KEY is set on Vercel.");
+                    }
+
+                    // Create and initialize the widget
                     widgetWrapper.innerHTML = '';
                     const widget = document.createElement('elevenlabs-convai');
                     widget.id = 'elevenlabs-widget';
-                    
-                    if (data.signed_url) {
-                        widget.setAttribute('signed-url', data.signed_url);
-                    } else if (data.agent_id) {
-                        widget.setAttribute('agent-id', data.agent_id);
-                    } else {
-                        throw new Error("No agent data received from server");
-                    }
-                    
+                    widget.setAttribute('signed-url', data.signed_url);
                     widgetWrapper.appendChild(widget);
                     
-                    // 3. PRODUCTION SECURITY: Remove ID from DOM after initialization
-                    // We wait a brief moment for the widget to read the ID, then wipe it.
+                    // Cleanup security: Remove signed URL from DOM after 3 seconds
                     setTimeout(() => {
-                        widget.removeAttribute('agent-id');
                         widget.removeAttribute('signed-url');
-                        console.log('ElevenLabs: Security cleanup complete. IDs removed from DOM.');
-                    }, 2000);
+                    }, 3000);
                     
-                    // 4. Show the container
+                    // Show the agent
                     gate.style.display = 'none';
                     widgetWrapper.style.display = 'flex';
-                    console.log('ElevenLabs: Authenticated and widget initialized.');
                 } else {
                     const errorData = await response.json();
-                    alert(errorData.error || "Incorrect access code.");
+                    gate.innerHTML = `<p style="color: #ff4444;">Auth Failed: ${errorData.error || 'Server error'}</p>`;
                 }
             } catch (err) {
                 console.error('Connection error:', err);
-                alert("Server connection failed. (Make sure you are not on GitHub Pages)");
+                gate.innerHTML = `<p style="color: #ff4444;">Error: ${err.message}</p>`;
             }
         }
+
+        // Auto-run on load
+        window.addEventListener('load', initAgent);
     </script>
     <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
 </body>
