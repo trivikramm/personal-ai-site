@@ -56,7 +56,9 @@ export default async function (req, res) {
     // data.signed_url contains the wss://... URL with conversation_signature
     res.status(200).json(data);
   } catch (error) {
-    console.error('Error signing URL:', error);
-    res.status(500).json({ error: error.message });
+    console.error('Error signing URL or returning ID:', error);
+    // If signing fails but password was correct, we can still return the agentId 
+    // to be injected dynamically instead of statically in HTML
+    res.status(200).json({ agent_id: agentId });
   }
 }
