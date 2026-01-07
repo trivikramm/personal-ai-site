@@ -81,12 +81,21 @@
 
         async function checkPassword() {
             const input = document.getElementById('password-input').value;
-            if (input === ACCESS_CODE || ACCESS_CODE === "" || ACCESS_CODE === "{{SITE_ACCESS_CODE}}") {
+            
+            // Placeholder detection to check if the secret was actually injected
+            const isPlaceholder = (ACCESS_CODE === "" || ACCESS_CODE === "{{" + "SITE_ACCESS_CODE" + "}}");
+            
+            if (isPlaceholder) {
+                alert("Setup Required: Please set the SITE_ACCESS_CODE secret in your GitHub Repository settings and wait for the site to rebuild.");
+                return;
+            }
+
+            if (input === ACCESS_CODE) {
                 document.getElementById('gate').style.display = 'none';
                 document.getElementById('widget-wrapper').style.display = 'flex';
-                initAuth(); // Call the auth/init logic
+                initAuth(); 
             } else {
-                alert("Incorrect code.");
+                alert("Incorrect code. Please try again.");
             }
         }
 
