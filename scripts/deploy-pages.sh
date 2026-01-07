@@ -9,10 +9,12 @@ rm -rf "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
 
 # Copy files to output
-if [[ -d "$SOURCE_DIR" && -n "$(ls -A "$SOURCE_DIR" 2>/dev/null)" ]]; then
-  cp -a "$SOURCE_DIR"/. "$OUTPUT_DIR"/
+# We only need the generated index.html for the live site.
+if [[ -f "index.html" ]]; then
+  cp "index.html" "$OUTPUT_DIR/"
 else
-  cp -a . /*.html public/ "$OUTPUT_DIR"/ 2>/dev/null || true
+  echo "ERROR: index.html not found. Did the generation step fail?"
+  exit 1
 fi
 
 # Validate output

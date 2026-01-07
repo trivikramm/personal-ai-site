@@ -14,3 +14,4 @@ fi
 
 echo "Running generator: $SCRIPT_PATH"
 node "$SCRIPT_PATH"
+node "$SCRIPT_PATH"
