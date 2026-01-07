@@ -13,7 +13,6 @@ if (!agentId) {
 
 const tpl = fs.readFileSync(templatePath, 'utf8');
 let out = tpl.replace(/{{ELEVENLABS_AGENT_ID}}/g, agentId || 'your-agent-id-here');
-out = out.replace(/{{SITE_ACCESS_CODE}}/g, siteAccessCode);
 
 fs.writeFileSync(outPath, out, 'utf8');
 console.log('index.html generated successfully.');
