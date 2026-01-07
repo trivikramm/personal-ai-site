@@ -3,10 +3,8 @@
   "version": "1.0.0",
   "description": "Personal AI Assistant site with ElevenLabs ConvAI",
   "scripts": {
-    "build": "bash scripts/generate-html.sh"
+    "build": "node scripts/generate-personalAI.js"
   },
   "dependencies": {},
-  "devDependencies": {
-    "node-fetch": "^3.3.2"
-  }
+  "devDependencies": {}
 }

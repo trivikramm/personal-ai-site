@@ -9,7 +9,14 @@ export default async function (req, res) {
   const siteAccessCode = process.env.SITE_ACCESS_CODE;
 
   // Handle both GET and POST for password check
-  const providedPassword = req.method === 'POST' ? req.body?.password : req.query?.password;
+  let providedPassword = '';
+  if (req.method === 'POST') {
+    // Vercel might not parse the body automatically if not configured
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    providedPassword = body?.password;
+  } else {
+    providedPassword = req.query?.password;
+  }
 
   if (!agentId) {
     return res.status(500).json({ error: 'Missing ELEVENLABS_AGENT_ID on server' });
